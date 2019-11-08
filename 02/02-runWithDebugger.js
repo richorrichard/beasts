@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * 2. Improving runWithDebugger
  * 
@@ -17,35 +19,39 @@
  * 
  * runWithDebugger(sayFullName, ['gordon', 'zhu']); // 'gordon zhu'
  * ---------------------------------------------------------------------------------------
- * /
+ */
 
-"use strict";
+function sayFullName(first, last) {
+  if (arguments.length === 0) {
+    console.log('No name!');
+  } else {
+    console.log(first + ' ' + last);
+  }
+}
 
 /**
-  * Run a provided function through the debugger, allowing for debugged function to 
-  * have a callback function.
+  * Run a provided function through the debugger and provide optional arguments for debugged
+  * function.
   * 
   * Requirements: 
-  *   - It should run `debugFunction` in the debugger.
-  *   - It should work with functions that include a callback.
-  *   - It should use optional `callbackArgs` array to provide arguments to function.
+  *   - It should run `debugCallback` through the debugger.
+  *   - It should use optional `callbackArgs` array to provide arguments to `debugCallback`.
   * 
-  * @param {function} debugFunction function to be run through debugger.
+  * @param {function} debugCallback function to be run through debugger.
   * @param {array} callbackArgs Array containing arguments to pass into debugged function
   */
 
-function runWithDebugger() {
-
+function runWithDebugger(debugCallback, callbackArgs) {
+  if (arguments.length > 1) {
+    debugger;
+    debugCallback.apply(this, callbackArgs);
+  } else {
+    debugger;
+    debugCallback();
+  }
 }
 
-tests({
-  'It should run `debugFunction` in the debugger.': function() {
-    fail();
-  },
-  'It should work with functions that include a callback.': function() {
-    fail();
-  },
-  'It should use optional `callbackArgs` array to provide arguments to function.': function() {
-    fail();
-  },
-});
+// Test run
+runWithDebugger(sayFullName, ['Richard', 'Sherman']);
+runWithDebugger(sayFullName, ['gordon', 'zhu']);
+runWithDebugger(sayFullName);
