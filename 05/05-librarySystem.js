@@ -1,22 +1,5 @@
 "use strict";
 
-/**
- * 
- * Requirements:
- * 
- * - If `arguments.length > 1`, it should create new library property on `librarySystem`.
- * - If `arguments.length === 1`, it should return library referenced by `library` parameter.
- * - If `arguments.length > 2`, `deps` items should be accessible to `libraryCallback`.
- * 
- * - It should be have a mechanism to define required libraries.
- * - If dependency(s) missing, throw ReferenceError and the name of missing library.
- * - It should support any number of dependencies.
- * 
- * - If `library`, should be a string.
- * - If `deps`, should be an Array.
- * 
- */
-
 function bikeLib() {
   var models = {
     santaCruz: "Santa Cruz",
@@ -57,50 +40,58 @@ function workBlurbLib(name, company) {
  * @param {array} libraryDeps Array of dependent library names. 
  * @param {function} libraryCallback Callback containing library to be stored/referenced.
  * 
- * @return {object} Returns library object.
+ * @return {object} Returns library callback.
  */
 
 
 (function() {
+
   var libraryStorage = {};
-  //maybe the easiest thing here is going to be to just change the format of the storage.
-  // New potential structure:
-  //
-  // libraryStorage = {
-  //   name: {
-  //     libraryDeps: libraryDeps,
-  //     libraryCallback: libraryCallback
-  //   }
-  // }
 
   function librarySystem(libraryName, libraryDeps, libraryCallback) {
     if (typeof libraryName !== 'string') {
       throw new TypeError;
     }
 
-    if (arguments.length > 1) {
-      if (!Array.isArray(libraryDeps)) {
-        throw new TypeError('libraryDeps must be an Array.');
-      } else {
-        if (libraryDeps.length > 0) {
-          var libArray = libraryDeps.map(function(value, index) {
-            if (!librarySystem(value)) {
-              throw new ReferenceError('Missing Dependency: ' + value);
-            } else {
-              return librarySystem(value);
-            }
-          });
-          
-          // Add another thing here to store the deps, and then bind the stored deps to it.
-          libraryCallback = libraryCallback.apply.bind(libraryCallback, null, libArray);
-        } 
+    if (arguments.length >1) {
+      // Check if library exists
+      if (libraryStorage[libraryName]) {
+        throw new ReferenceError('Library ' + libraryName + ' already exists.');
       }
 
-      // libraryStorage[libraryName][libraryDeps] = libraryDeps; // This should be string containing library names
-      // libraryStorage[libraryName][libraryCallback] = libraryCallback(); // This should contain the callback function. 
-      libraryStorage[libraryName] = libraryCallback();       
+      // Check if it's an array
+      // TODO: Allow for single element string to be passed into deps
+      if (!Array.isArray(libraryDeps)) {
+        throw new TypeError('libraryDeps must be an Array.');
+      }
+
+      // Store library on the object
+      libraryStorage[libraryName] = {
+        libraryDeps: libraryDeps,
+        libraryCallback: libraryCallback
+      }      
     } else {
-      return libraryStorage[libraryName];
+      // Check if library exists
+      if (!libraryStorage[libraryName]) {
+        throw new ReferenceError('Library ' + libraryName + ' not found.');
+      }
+
+      var currentLibrary = libraryStorage[libraryName];
+      var currentLibraryCallback = currentLibrary.libraryCallback;
+
+      // Check if it has dependents
+      if (currentLibrary.libraryDeps.length > 0) {
+        var libBindArray = currentLibrary.libraryDeps.map(function(value) {
+          if (!libraryStorage[value]) {
+            throw new ReferenceError('Missing Dependency: ' + value);
+          } else {
+            return libraryStorage[value].libraryCallback();
+          }
+        });
+        currentLibraryCallback = currentLibraryCallback.apply.bind(currentLibraryCallback, null, libBindArray);
+      }
+      // return library function call
+      return currentLibraryCallback();
     }
   }
 
@@ -117,19 +108,16 @@ tests({
     var resultLibrary = librarySystem('bikeLibrary');
     eq(resultLibrary.colors.blue, 'Yeti Blue');
   },
-  'It should reference libraries in array `libraryDeps`.': function() {
+  'It should reference dependent library names in array `libraryDeps`.': function() {
     librarySystem('nameLib', [], nameLib);
     librarySystem('companyLib', [], companyLib);
     librarySystem('workBlurb', ['nameLib', 'companyLib'], workBlurbLib);
     eq(librarySystem('workBlurb'), "Gordon works at Watch and Code");
   },
-  'It should be have a mechanism to define required libraries.': function() {
-    librarySystem('workBlurb', ['nameLib', 'companyLib'], workBlurbLib);
-    eq(librarySystem('workBlurb'), "Gordon works at Watch and Code");
-  },
   'If dependency(s) missing, throw ReferenceError and the name of missing library.': function() {
+    librarySystem('workBlurb2', ['nameLib1'], workBlurbLib);
     try {
-      librarySystem('workBlurb', ['nameLib1'], workBlurbLib);
+      librarySystem('workBlurb2');
     } catch(e) {
       eq(e.message, 'Missing Dependency: nameLib1');
     }
@@ -143,15 +131,30 @@ tests({
   },
   'If `deps`, should be an Array.': function() {
     try {
-      librarySystem('workBlurb', 42, workBlurbLib);
+      librarySystem('workBlurb3', 42, workBlurbLib);
     } catch(e) {
       eq(e.name, 'TypeError');
+    }
+  },
+  'If libraryName exists, throw ReferenceError': function() {
+    try {
+      librarySystem('workBlurb', [], workBlurbLib);
+    } catch(e) {
+      eq(e.name, 'ReferenceError');
+    }
+  },
+  'If try to run on nonexistant library, throw ReferenceError': function() {
+    // debugger;
+    try {
+      librarySystem('sprinkles');
+    } catch(e) {
+      eq(e.name, 'ReferenceError');
     }
   },
   'The order of dependencies should not matter': function() {
     // Verbatim, this is the case that Gordon requested.
 
-    librarySystem('workBlurb', ['name', 'company'], function(name, company) {
+    librarySystem('workBlurbTest', ['name', 'company'], function(name, company) {
       return name + ' works at ' + company;
     });
 
@@ -163,11 +166,27 @@ tests({
       return 'Watch and Code';
     });
 
-    librarySystem('workBlurb'); // 'Gordon works at Watch and Code'
+    librarySystem('workBlurbTest'); // 'Gordon works at Watch and Code'
   },
   'It should only run each callback function one time': function() {
-    fail();
-  },
+    var callbackCount = 0;
+    librarySystem('workBlurbCallbackTest', ['name1', 'company2'], function(name, company) {
+      callbackCount++;
+      return name + ' works at ' + company;
+    });
 
+    librarySystem('name1', [], function() {
+      callbackCount++;
+      return 'Gordon';
+    });
+
+    librarySystem('company2', [], function() {
+      callbackCount++;
+      return 'Watch and Code';
+    });
+    eq(callbackCount, 0);
+    librarySystem('workBlurbCallbackTest'); // 'Gordon works at Watch and Code'
+    eq(callbackCount, 3);
+  },
 });
 
