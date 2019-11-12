@@ -84,6 +84,7 @@ tests({
     eq(resultNum, '1.125000');
   }, 
   'If run on a 10,000,000 random floats, it should work. (thanks @jxofficial for this idea!)': function() {
+    // brought @jxofficial's test in here, slight tweaks, but his code entirely.
     function randomFloatBetween(minValue, maxValue) {
         return parseFloat(Math.min(minValue + (Math.random() * (maxValue - minValue)), maxValue));
       }
