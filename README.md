@@ -1,5 +1,5 @@
 # Watch and Code Beasts
-Second set of exercises for Watch and Code (Beasts). Exerci 
+Second set of exercises for Watch and Code (Beasts). 
 
 ## Exercises (with requirements links):
 
@@ -7,6 +7,6 @@ Second set of exercises for Watch and Code (Beasts). Exerci
 - ✓ A render that doesn't lie
 - ✓ librarySystem with dependencies
 - ✓ Creating libraries out of order
-- isPrototypeOf()
-- A twist on account.toFixed()
+- ✓ isPrototypeOf()
+- ✓ A twist on accounting.toFixed()
 - Nested todos
