@@ -82,6 +82,19 @@ tests({
     debugger;
     var resultNum = toFixed(1.125, 6);
     eq(resultNum, '1.125000');
+  }, 
+  'If run on a 10,000,000 random floats, it should work. (thanks @jxofficial for this idea!)': function() {
+    function randomFloatBetween(minValue, maxValue) {
+        return parseFloat(Math.min(minValue + (Math.random() * (maxValue - minValue)), maxValue));
+      }
+    var arr = [];
+    var mappedArr = [];
+    for (var i = 0; i < 10000000; i++) {
+        arr.push(randomFloatBetween(1, 9999));
+    }
+    
+    var expected = arr.map(num => toFixed(num, 4));
+    mappedArr.forEach((num, i) => eq(num, expected[i]));
   }
 
 });
