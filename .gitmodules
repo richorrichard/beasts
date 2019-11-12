@@ -4,3 +4,6 @@
 [submodule "04/accounting.js"]
 	path = 04/accounting.js
 	url = https://github.com/richorrichard/accounting.js.git
+[submodule "08/todomvc"]
+	path = 08/todomvc
+	url = https://github.com/richorrichard/todomvc.git
