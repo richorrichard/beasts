@@ -7,3 +7,6 @@
 [submodule "08/todomvc"]
 	path = 08/todomvc
 	url = https://github.com/richorrichard/todomvc.git
+[submodule "08/the_todo_app"]
+	path = 08/the_todo_app
+	url = https://github.com/richorrichard/the_todo_app.git
